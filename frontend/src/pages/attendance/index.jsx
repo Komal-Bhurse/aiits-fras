@@ -91,7 +91,7 @@ export default function Index() {
             }
         } catch {
             toast.dismiss(loading3);
-            toast.success("Something went wrong please try again!");
+            toast.error("Something went wrong please try again!");
             setCapturedImage("")
             setStream(true)
             startStream()
