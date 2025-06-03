@@ -40,7 +40,7 @@ if (now < collegeStart || now > collegeEnd) {
 
     const alreadyMarked = await Attendance.findOne({
       userId: bestMatch.user._id,
-      signInAt: { $gte: start, $lte: end }
+      signInAt: { $gte: collegeStart, $lte: collegeEnd }
     });
 
     if (alreadyMarked) {
