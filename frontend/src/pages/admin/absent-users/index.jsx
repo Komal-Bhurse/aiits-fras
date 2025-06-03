@@ -39,8 +39,8 @@ export default function Index() {
                 absentUsers && absentUsers.map((item, index) => {
                   return <tr key={index} className="hover:bg-gray-700 transition">
                     <td className="px-6 py-4">{index + 1}</td>
-                    <td className="px-6 py-4">{item.userId.name}</td>
-                    <td className="px-6 py-4">{item.userId.aadhaar}</td>
+                    <td className="px-6 py-4">{item?.name}</td>
+                    <td className="px-6 py-4">{item?.aadhaar}</td>
 
                     <td className="px-6 py-4 text-red-400">Absent</td>
                   </tr>
