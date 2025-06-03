@@ -30,7 +30,12 @@ router.post('/sign-in', async (req, res) => {
 
   if (bestMatch.dist < 0.6) {
 
-      const { start, end } = getCollegeHoursRange();
+    const now = new Date();
+const { start: collegeStart, end: collegeEnd } = getCollegeHoursRange();
+if (now < collegeStart || now > collegeEnd) {
+  return res.json({ status: false, message: "You can only sign in between 10 AM and 5 PM" });
+}
+
 
 
     const alreadyMarked = await Attendance.findOne({
