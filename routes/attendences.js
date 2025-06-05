@@ -1,4 +1,6 @@
 import express from "express";
+
+
 const router = express.Router();
 import Attendance from "../models/attendence.js"
 import User from "../models/user.js"
