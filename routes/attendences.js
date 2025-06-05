@@ -34,7 +34,7 @@ router.post('/sign-in', async (req, res) => {
     const now = new Date();
 const { start: collegeStart, end: collegeEnd } = getHoursRange();
 
-console.log(collegeStart,collegeEnd)
+console.log(now,collegeStart,collegeEnd)
 if (now < collegeStart || now > collegeEnd) {
   return res.json({ status: false, message: `You can only sign in between ${getUTCToISTTime(collegeStart)} and ${getUTCToISTTime(collegeEnd)}` });
 }
