@@ -19,11 +19,11 @@ export function getUTCToISTTime(dateInput) {
 const date = new Date(dateInput);
 
   return date.toLocaleTimeString('en-IN', {
-      timeZone: TIMEZONE,
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    })
+    timeZone: 'Asia/Kolkata',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  });
 }
 
 
