@@ -9,7 +9,7 @@ export const getHoursRange = () => {
 };
 
 export function getUTCToISTTime(utcString) {
-const date = new Date(utcDateInput); // Accepts UTC string, timestamp, or Date object
+const date = new Date(utcString); // Accepts UTC string, timestamp, or Date object
 
   return date.toLocaleTimeString('en-IN', {
     timeZone: 'Asia/Kolkata', // Force IST timezone
