@@ -1,8 +1,13 @@
 import dotenv from 'dotenv'
-dotenv.config()
+const envFile =
+  process.env.NODE_ENV === 'prod'
+    ? '.env.prod'
+    : '.env.dev';
+
+dotenv.config({ path: envFile });
 
 
-const TIMEZONE = process.env.TIMEZONE || 'UTC';
+const TIMEZONE = process.env.TIMEZONE;
 
 
 export const getHoursRange = () => {
@@ -19,7 +24,7 @@ export function getUTCToISTTime(dateInput) {
 const date = new Date(dateInput);
 
   return date.toLocaleTimeString('en-IN', {
-    timeZone: 'Asia/Kolkata',
+    timeZone: TIMEZONE,
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,

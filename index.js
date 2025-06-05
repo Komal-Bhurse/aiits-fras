@@ -8,6 +8,8 @@ import userRoutes from "./routes/users.js"
 import attendanceRoutes from "./routes/attendences.js"
 import syncRoutes from "./routes/sync.js"
 
+
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
