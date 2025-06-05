@@ -15,7 +15,7 @@ export const getHoursRange = () => {
   start.setHours(10, 0, 0, 0); // Today at 10:00:00 AM
 
   const end = new Date();
-  end.setHours(14, 0, 0, 0); // Today at 5:00:00 PM
+  end.setHours(17, 0, 0, 0); // Today at 5:00:00 PM
 
   return { start, end };
 };

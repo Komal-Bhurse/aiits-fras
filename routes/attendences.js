@@ -39,8 +39,6 @@ if (now < collegeStart || now > collegeEnd) {
   return res.json({ status: false, message: `You can only sign in between ${getUTCToISTTime(collegeStart)} and ${getUTCToISTTime(collegeEnd)}` });
 }
 
-
-
     const alreadyMarked = await Attendance.findOne({
       userId: bestMatch.user._id,
       signInAt: { $gte: collegeStart, $lte: collegeEnd }
