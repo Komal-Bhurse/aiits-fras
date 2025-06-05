@@ -9,11 +9,10 @@ export const getHoursRange = () => {
 };
 
 export function getUTCToISTTime(utcString) {
- const date = new Date(utcString);
+const date = new Date(utcDateInput); // Accepts UTC string, timestamp, or Date object
 
-  // Format directly in IST timezone
   return date.toLocaleTimeString('en-IN', {
-    timeZone: 'Asia/Kolkata', // IST timezone
+    timeZone: 'Asia/Kolkata', // Force IST timezone
     hour: 'numeric',
     minute: '2-digit',
     hour12: true
