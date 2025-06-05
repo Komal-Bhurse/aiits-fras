@@ -2,12 +2,11 @@ import express from "express";
 const router = express.Router();
 import Attendance from "../models/attendence.js"
 import User from "../models/user.js"
-import {getCollegeHoursRange} from "../utils/index.js"
+import {getHoursRange,getUTCToISTTime} from "../utils/index.js"
 
 router.post('/sign-in', async (req, res) => {
   const { descriptor } = req.body;
 
-  console.log(descriptor)
 
   if (!descriptor || !Array.isArray(descriptor)) {
     return res.json({status:false, message: 'Invalid descriptor data' });
@@ -31,9 +30,11 @@ router.post('/sign-in', async (req, res) => {
   if (bestMatch.dist < 0.6) {
 
     const now = new Date();
-const { start: collegeStart, end: collegeEnd } = getCollegeHoursRange();
+const { start: collegeStart, end: collegeEnd } = getHoursRange();
+
+console.log(collegeStart,collegeEnd)
 if (now < collegeStart || now > collegeEnd) {
-  return res.json({ status: false, message: "You can only sign in between 10 AM and 5 PM" });
+  return res.json({ status: false, message: `You can only sign in between ${getUTCToISTTime(collegeStart)} and ${getUTCToISTTime(collegeEnd)}` });
 }
 
 
@@ -42,6 +43,8 @@ if (now < collegeStart || now > collegeEnd) {
       userId: bestMatch.user._id,
       signInAt: { $gte: collegeStart, $lte: collegeEnd }
     });
+
+    console.log(alreadyMarked)
 
     if (alreadyMarked) {
       return res.json({
@@ -62,7 +65,7 @@ if (now < collegeStart || now > collegeEnd) {
 });
 
 router.get('/present', async (req, res) => {
-  const { start, end } = getCollegeHoursRange();
+  const { start, end } = getHoursRange();
 
     const presentStudents = await Attendance.find({
       signInAt: { $gte: start, $lte: end }
@@ -76,7 +79,7 @@ router.get('/present', async (req, res) => {
 });
 
 router.get('/absent', async (req, res) => {
-  const { start, end } = getCollegeHoursRange();
+  const { start, end } = getHoursRange();
 
     const allUsers = await User.find();
 
