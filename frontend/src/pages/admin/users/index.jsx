@@ -1,44 +1,20 @@
 
 import { useEffect, useState } from "react"
-import axios from "axios"
+import { getAllUsers } from "../../../utils/attendances"
+
+
 export default function Index() {
   const [users, setUsers] = useState([])
 
- function formatDateTime(dateStr) {
-  const date = new Date(dateStr);
-  const day = String(date.getDate()).padStart(2, "0");
-  const month = date.toLocaleString("en-GB", { month: "short" }); // e.g., "Jun"
-  const year = date.getFullYear();
-
-  const hours = date.getHours() % 12 || 12;
-  const minutes = String(date.getMinutes()).padStart(2, "0");
-  const ampm = date.getHours() >= 12 ? "PM" : "AM";
-
-  return `${day}-${month}-${year} | ${hours}:${minutes} ${ampm}`;
-}
-
-function formatAadhaar(number) {
-  return number.replace(/(\d{4})(\d{4})(\d{4})/, "$1 $2 $3");
-}
-
-
-
-
-  const fetchUsers = async () => {
-    const res = await axios.get("/api/user")
-    if (res.status) {
-      const std = res.data.users.map((item)=>{
-        const date = formatDateTime(item.createdAt)
-        const adhar = formatAadhaar(item.aadhaar)
-        return {...item,createdAt:date,aadhaar:adhar}
-      })
-      setUsers(std)
+  const getDashBoardData = async () => {
+      const res = await getAllUsers()
+      setUsers(res)
     }
-  }
-
-  useEffect(() => {
-    fetchUsers()
-  }, [])
+  
+  
+    useEffect(() => {
+      getDashBoardData()
+    }, [])
 
   return (
     <>
@@ -60,7 +36,14 @@ function formatAadhaar(number) {
                   return <tr key={index} className="hover:bg-gray-700 transition">
                     <td className="px-6 py-4">{index + 1}</td>
                     <td className="px-6 py-4">{item.name}</td>
-                    <td className="px-6 py-4 text-green-400">{item.aadhaar}</td>
+                    {
+                      item.aadhaarVerified ?
+                        <td className="px-6 py-4 text-green-400">{item.aadhaar}</td>
+
+                        :
+                        <td className="px-6 py-4 text-red-400">{item.aadhaar}</td>
+
+                    }
                     <td className="px-6 py-4">{item.createdAt}</td>
                   </tr>
                 })

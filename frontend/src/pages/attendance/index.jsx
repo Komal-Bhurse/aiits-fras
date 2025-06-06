@@ -1,11 +1,18 @@
 import { useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
+import { db } from "../../utils/indexdb";
 import axios from "axios";
 import * as faceapi from "face-api.js";
 import { useLocation } from "react-router-dom";
+import {markAttendanceOffline} from "../../utils/attendances"
+import {loadFaceModels} from "../../utils/face-api-models"
+import { syncUsersFromServerToLocal, syncAttendanceFromServerToLocal } from "../../utils/syncServerToLocal"
+import { syncUsersFromLocalToServer, syncAttendanceFromLocalToServer } from "../../utils/syncLocalToServer"
+import { useOnlineStatus } from '../../hooks/checkOnOffStatus';
 
 export default function Index() {
-    const {pathname} = useLocation();
+    const isOnline = useOnlineStatus()
+    const { pathname } = useLocation();
 
     const webcamVideo = useRef(null);
 
@@ -15,17 +22,20 @@ export default function Index() {
 
     const [loading, setLoading] = useState(false);
 
-    useEffect(() => {
-        const loadModels = async () => {
-            const MODEL_URL = "/models";
-            await Promise.all([
-                faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
-                faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-                faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-            ]);
-        };
-        loadModels();
-    }, []);
+    
+  useEffect(() => {
+  const load = async () => {
+    try {
+      await loadFaceModels(); 
+      console.log("Face models loaded successfully");
+    } catch (err) {
+      console.error("Error loading face models:", err);
+    }
+  };
+
+  load();
+}, []);
+
 
 
 
@@ -33,7 +43,6 @@ export default function Index() {
         setLoading(true)
         const loading1 = toast.loading("Capturing image...");
         const video = webcamVideo.current;
-        console.log(video.readyState)
 
         if (!video || video.readyState !== 4) {
 
@@ -67,35 +76,54 @@ export default function Index() {
 
         const descriptor = Array.from(detection.descriptor);
 
-        console.log("descriptor",descriptor)
 
         const loading3 = toast.loading("Matching face...")
 
         try {
-            const res = await axios.post("/api/attendance/sign-in", {descriptor});
-            if (res.data.status) {
-                toast.dismiss(loading3);
-                toast.success(res.data.message);
-                setCapturedImage("")
-                setStream(true)
-                startStream()
-                setLoading(false)
+            if (window.navigator.onLine) {
+                const res = await axios.post("/api/attendance/sign-in", { descriptor });
+                if (res.data.status) {
+                    toast.dismiss(loading3);
+                    toast.success(res.data.message);
+                    setCapturedImage("")
+                    setStream(true)
+                    startStream()
+                    setLoading(false)
 
+                } else {
+                    toast.dismiss(loading3);
+                    toast.error(res.data.message);
+                    setCapturedImage("")
+                    setStream(true)
+                    startStream()
+                    setLoading(false)
+                }
             } else {
-                toast.dismiss(loading3);
-                toast.error(res.data.message);
-                setCapturedImage("")
-                setStream(true)
-                startStream()
-                setLoading(false)
+                const result = await markAttendanceOffline(descriptor);
+
+                if (result.status) {
+                    toast.dismiss(loading3);
+                    toast.success(result.message);
+                    setCapturedImage("")
+                    setStream(true)
+                    startStream()
+                    setLoading(false)
+                } else {
+                    toast.dismiss(loading3);
+                    toast.error(result.message);
+                    setCapturedImage("")
+                    setStream(true)
+                    startStream()
+                    setLoading(false)
+                }
             }
-        } catch {
+        } catch(err) {
             toast.dismiss(loading3);
-            toast.error("Something went wrong please try again!");
             setCapturedImage("")
             setStream(true)
             startStream()
             setLoading(false)
+            console.log(err);
         }
 
     }
@@ -151,6 +179,22 @@ export default function Index() {
     useEffect(() => {
         startStream();
     }, []);
+
+    
+    useEffect(() => {
+
+        const handleOnline = async () => {
+          await syncUsersFromLocalToServer();
+          await syncAttendanceFromLocalToServer();
+          await syncUsersFromServerToLocal();
+          await syncAttendanceFromServerToLocal();
+        };
+    
+        if (isOnline) {
+          handleOnline()
+        }
+
+    }, [isOnline]);
 
     return (
         <>

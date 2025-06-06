@@ -2,9 +2,15 @@ import { useEffect, useState, useRef } from "react";
 import toast from "react-hot-toast";
 import axios from "axios";
 import * as faceapi from "face-api.js";
+import { db } from "../../utils/indexdb"
+import { v4 as uuidv4 } from 'uuid';
+import { loadFaceModels } from "../../utils/face-api-models";
 
 
 export default function Index() {
+
+     
+
     const webcamVideo = useRef(null);
 
     const [stream, setStream] = useState(true);
@@ -22,17 +28,17 @@ export default function Index() {
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
-        const loadModels = async () => {
-            const MODEL_URL = "/models";
-            await Promise.all([
-                faceapi.nets.ssdMobilenetv1.loadFromUri(MODEL_URL),
-                faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_URL),
-                faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_URL),
-            ]);
-        };
-
-        loadModels();
-    }, []);
+              const load = async () => {
+                try {
+                  await loadFaceModels(); 
+                  console.log("Face models loaded successfully");
+                } catch (err) {
+                  console.error("Error loading face models:", err);
+                }
+              };
+            
+              load();
+            }, []);
 
     const verifyAddhar = async (e) => {
         e.preventDefault();
@@ -47,16 +53,22 @@ export default function Index() {
 
         const loading = toast.loading("Verifying!");
         try {
-            const verifyRes = await axios.get(`/api/user/verify-aadhaar/${aadhaar}`);
-            if (verifyRes.data.status) {
-                toast.dismiss(loading);
-                toast.success(verifyRes.data.message);
-                setStep(2);
+            if (window.navigator.onLine) {
+                const verifyRes = await axios.get(`/api/user/verify-aadhaar/${aadhaar}`);
+                if (verifyRes.data.status) {
+                    toast.dismiss(loading);
+                    toast.success(verifyRes.data.message);
+                    setStep(2);
+                } else {
+                    toast.dismiss(loading);
+                    toast.error(verifyRes.data.message);
+                }
             } else {
                 toast.dismiss(loading);
-                toast.error(verifyRes.data.message);
+                toast.success("you are offline! will be verifying when you Online");
+                setStep(2);
             }
-            
+
         } catch (error) {
             toast.dismiss(loading);
             toast.error("Somthing went wrong. Please try again !");
@@ -124,10 +136,34 @@ export default function Index() {
 
     const registerUser = async () => {
         setLoading(true)
-        console.log(name, aadhaar, descriptor)
+
+        const userOnline = {
+            name, aadhaar, aadhaarVerified: true, descriptor,
+        }
+
+        const userOffline = {
+            name,
+            aadhaar,
+            aadhaarVerified: false,
+            descriptor,
+            addedBy: "", // or current user if available
+            createdAt: new Date().toISOString()
+        };
+
         try {
-            await axios.post("/api/user/register", { name, aadhaar, descriptor });
-            toast.success("Registered successfully!");
+
+            if (navigator.onLine) {
+                // ONLINE: Send to server
+                await axios.post("/api/user/register", { ...userOnline });
+                toast.success("Registered successfully!");
+
+            } else {
+                // OFFLINE: Save in IndexedDB and queue sync
+                await db.users.add(userOffline);
+                await db.syncUserQueue.add({ operation: "add", data: userOffline });
+                toast.success("User registered offline. Will sync when online.");
+            }
+
             setLoading(false)
             setStep(1)
             setCapturedImage(null)

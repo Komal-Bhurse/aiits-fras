@@ -1,24 +1,22 @@
 import { useEffect, useState } from "react"
-import axios from "axios"
+import { getAllAbsentUsers } from "../../../utils/attendances"
 
 
 export default function Index() {
 
   const [absentUsers, setAbsentUsers] = useState([])
 
-  const fetchAbsentUsers = async () => {
-    const res = await axios.get("/api/attendance/absent")
-    if (res.data.status) {
-
-      setAbsentUsers(res.data.users)
+  const getDashBoardData = async () => {
+      const res3 = await getAllAbsentUsers()
+      setAbsentUsers(res3)
     }
-  }
+  
+  
+    useEffect(() => {
+      getDashBoardData()
+    }, [])
 
-  useEffect(() => {
-    fetchAbsentUsers()
-  }, [])
-
-
+ 
   return (
     <>
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
@@ -40,11 +38,18 @@ export default function Index() {
                   return <tr key={index} className="hover:bg-gray-700 transition">
                     <td className="px-6 py-4">{index + 1}</td>
                     <td className="px-6 py-4">{item?.name}</td>
-                    <td className="px-6 py-4">{item?.aadhaar}</td>
+                    {
+                      item.aadhaarVerified ?
+                        <td className="px-6 py-4 text-green-400">{item.aadhaar}</td>
+
+                        :
+                        <td className="px-6 py-4 text-red-400">{item.aadhaar}</td>
+
+                    }
 
                     <td className="px-6 py-4 text-red-400">Absent</td>
                   </tr>
-                  
+
                 })
               }
             </tbody>

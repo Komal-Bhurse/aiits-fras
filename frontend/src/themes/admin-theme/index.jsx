@@ -1,10 +1,16 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Outlet } from "react-router-dom";
 import { useNavigate } from 'react-router-dom'
+
 
 import { Disclosure, DisclosureButton, DisclosurePanel, Menu, MenuButton, MenuItem, MenuItems } from '@headlessui/react'
 import { Bars3Icon, BellIcon, XMarkIcon, } from '@heroicons/react/24/outline'
 import { Link, useLocation } from 'react-router-dom'
+
+import { syncUsersFromServerToLocal, syncAttendanceFromServerToLocal } from "../../utils/syncServerToLocal"
+import { syncUsersFromLocalToServer, syncAttendanceFromLocalToServer } from "../../utils/syncLocalToServer"
+import { useOnlineStatus } from '../../hooks/checkOnOffStatus';
+
 
 const user = {
 	name: 'Tom Cook',
@@ -29,11 +35,31 @@ function classNames(...classes) {
 }
 
 export default function index() {
+
+	const isOnline = useOnlineStatus()
+
+
 	const navigate = useNavigate()
 	const { pathname } = useLocation()
 
 	const breadCrum = pathname.split("/")[2].split("-").map(str => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()).join(" ")
 
+	
+
+	useEffect(() => {
+
+		const handleOnline = async () => {
+			await syncUsersFromLocalToServer();
+			await syncAttendanceFromLocalToServer();
+			await syncUsersFromServerToLocal();
+			await syncAttendanceFromServerToLocal();
+		};
+
+		if (isOnline) {
+			handleOnline()
+		}
+
+	}, [isOnline]);
 
 	return (
 		<div className="w-full h-[100vh] flex flex-col items-center justify-center bg-neutral-800 text-neutral-50">
@@ -43,7 +69,7 @@ export default function index() {
 						<div className="flex h-16 items-center justify-between">
 							<div className="flex items-center">
 								<div className="shrink-0">
-									<h1 onClick={()=>navigate("/")} className="cursor-pointer text-center text-2xl/9 font-bold tracking-tight text-cyan-700">
+									<h1 onClick={() => navigate("/")} className="cursor-pointer text-center text-2xl/9 font-bold tracking-tight text-cyan-700">
 										AIITS
 									</h1>
 								</div>
@@ -69,7 +95,7 @@ export default function index() {
 
 								<div className="ml-4 flex items-center gap-2 md:ml-6">
 									<button
-									onClick={()=>navigate("/admin/user-register")}
+										onClick={() => navigate("/admin/user-register")}
 										type="button"
 										className="cursor-pointer relative flex items-center border px-3 shadow rounded-full bg-gray-900 p-1 text-gray-400 hover:text-white"
 									>

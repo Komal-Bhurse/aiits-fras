@@ -1,43 +1,28 @@
 
 import { useEffect, useState } from "react"
-import axios from "axios"
-
+import { getAllUsers, getAllPresentUsers, getAllAbsentUsers } from "../../../utils/attendances"
 
 export default function Index() {
 
-    const [users, setUsers] = useState(0)
-        const [presentUsers, setPresentUsers] = useState(0)
+  const [users, setUsers] = useState(0)
+  const [presentUsers, setPresentUsers] = useState(0)
+  const [absentUsers, setAbsentUsers] = useState(0)
 
-            const [absentUsers, setAbsentUsers] = useState(0)
 
-  
-  const fetchUsers = async () => {
-    const res = await axios.get("/api/user")
-    if (res.data.status) {
-      setUsers(res.data.users.length)
-    }
+  const getDashBoardData = async () => {
+    const res = await getAllUsers()
+    setUsers(res.length)
+    const res2 = await getAllPresentUsers()
+    setPresentUsers(res2.length)
+    const res3 = await getAllAbsentUsers()
+    setAbsentUsers(res3.length)
   }
 
-
-  const fetchPresentUsers = async () => {
-    const res = await axios.get("/api/attendance/present")
-    if (res.data.status) {
-      setPresentUsers(res.data.count)
-    }
-  }
-
-  const fetchAbsentUsers = async () => {
-    const res = await axios.get("/api/attendance/absent")
-    if (res.data.status) {
-      setAbsentUsers(res.data.count)
-    }
-  }
 
   useEffect(() => {
-    fetchUsers()
-    fetchPresentUsers()
-    fetchAbsentUsers()
+    getDashBoardData()
   }, [])
+
 
   return (
     <>

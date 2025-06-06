@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 const userSchema = new mongoose.Schema({
   name: {type:String},
   aadhaar: {type:String},
+  aadhaarIV:{type:String},
+  aadhaarVerified:{type:Boolean,default:false},
   descriptor: [Number],
   addedBy:{type:String},
   createdAt: { type: Date, default: Date.now }
